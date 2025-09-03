@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { db } from './firebase/config';
 import { collection, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import GoogleAuth from './components/GoogleAuth';
 import {
   Box,
   Paper,
@@ -51,7 +53,9 @@ import 'dayjs/locale/es';
 // Configurar dayjs para español
 dayjs.locale('es');
 
-function App() {
+// Componente principal protegido
+function ReportsApp() {
+  const { user } = useAuth();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -237,8 +241,16 @@ function App() {
     );
   }
 
+  // Si no está autenticado, mostrar componente de login
+  // if (!user) {
+  //   return <GoogleAuth />;
+  // }
+
   return (
     <Box sx={{ p: 3 }}>
+      {/* Header con información del usuario */}
+      {/* <GoogleAuth user={user} /> */}
+      
       <Typography variant="h4" component="h1" gutterBottom>
         Reportes de Pánico
       </Typography>
@@ -706,6 +718,15 @@ function App() {
         </DialogActions>
       </Dialog>
     </Box>
+  );
+}
+
+// Componente principal con AuthProvider
+function App() {
+  return (
+    <AuthProvider>
+      <ReportsApp />
+    </AuthProvider>
   );
 }
 
