@@ -1,0 +1,114 @@
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  /* Removido backdrop-filter para compatibilidad WebView */
+}
+
+.dialog-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  max-height: 90%;
+  overflow: hidden;
+  /* Animación simplificada para WebView */
+  animation: dialogFadeIn 0.2s ease-out;
+}
+
+@keyframes dialogFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.dialog-header {
+  padding: 20px 20px 10px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+.success-icon {
+  width: 50px;
+  height: 50px;
+  background: #4CAF50;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 auto 15px;
+}
+
+.dialog-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dialog-body {
+  padding: 20px;
+  text-align: center;
+}
+
+.dialog-body p {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.dialog-footer {
+  padding: 15px 20px 20px;
+  text-align: center;
+}
+
+.dialog-button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-width: 100px;
+}
+
+.dialog-button:hover {
+  background: #0056b3;
+}
+
+.dialog-button:active {
+  transform: translateY(1px);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .dialog-content {
+    margin: 20px;
+    width: calc(100% - 40px);
+  }
+  
+  .dialog-header, .dialog-body, .dialog-footer {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
