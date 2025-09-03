@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { db } from './firebase/config';
 import { collection, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import GoogleAuth from './components/GoogleAuth';
+//import { AuthProvider, useAuth } from './contexts/AuthContext';
+//import GoogleAuth from './components/GoogleAuth';
 import {
   Box,
   Paper,
@@ -55,7 +55,7 @@ dayjs.locale('es');
 
 // Componente principal protegido
 function ReportsApp() {
-  const { user } = useAuth();
+  //const { user } = useAuth();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -66,6 +66,10 @@ function ReportsApp() {
   const [statusFilter, setStatusFilter] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [editedFields, setEditedFields] = useState({
+    description: '',
+    actions: ''
+  });
 
   useEffect(() => {
     fetchReports();
@@ -112,6 +116,10 @@ function ReportsApp() {
 
   const openReportDetails = (report) => {
     setSelectedReport(report);
+    setEditedFields({
+      description: report.description_facts || '',
+      actions: report.actions_realized || ''
+    });
   };
 
   const closeReportDetails = () => {
@@ -122,18 +130,54 @@ function ReportsApp() {
     try {
       setUpdating(true);
 
+      if (newStatus === 'resolved') {
+        // Obtener el reporte actual para validar
+        const reportToUpdate = reports.find(report => report.id === reportId);
+
+        // Validar que los campos requeridos estén llenos
+        if (!editedFields.description || editedFields.description.trim() === '') {
+          alert('Error: Debe completar la descripción de lo sucedido antes de marcar como resuelto.');
+          setUpdating(false);
+          return;
+        }
+
+        if (!editedFields.actions || editedFields.actions.trim() === '') {
+          alert('Error: Debe completar las acciones realizadas antes de marcar como resuelto.');
+          setUpdating(false);
+          return;
+        }
+      }
+
       // Actualizar en Firestore
       const reportRef = doc(db, "panic-reports", reportId);
-      await updateDoc(reportRef, {
+
+      // Crear objeto con los datos a actualizar
+      const updateData = {
         status: newStatus,
         updatedAt: new Date()
-      });
+      };
+
+      // Si es resuelto, incluir los campos editados
+      if (newStatus === 'resolved') {
+        updateData.description_facts = editedFields.description;
+        updateData.actions_realized = editedFields.actions;
+      }
+
+      await updateDoc(reportRef, updateData);
 
       // Actualizar en el estado local
       setReports(prevReports =>
         prevReports.map(report =>
           report.id === reportId
-            ? { ...report, status: newStatus, updatedAt: new Date() }
+            ? {
+              ...report,
+              status: newStatus,
+              updatedAt: new Date(),
+              ...(newStatus === 'resolved' ? {
+                description: editedFields.description,
+                actions: editedFields.actions
+              } : {})
+            }
             : report
         )
       );
@@ -143,7 +187,11 @@ function ReportsApp() {
         setSelectedReport(prev => ({
           ...prev,
           status: newStatus,
-          updatedAt: new Date()
+          updatedAt: new Date(),
+          ...(newStatus === 'resolved' ? {
+            description: editedFields.description,
+            actions: editedFields.actions
+          } : {})
         }));
       }
 
@@ -161,6 +209,10 @@ function ReportsApp() {
     if (window.confirm(confirmMessage)) {
       updateReportStatus(reportId, newStatus);
     }
+  };
+
+  const handleFieldChange = (field, value) => {
+    setEditedFields(prev => ({ ...prev, [field]: value }));
   };
 
   // Aplicar filtros
@@ -250,7 +302,7 @@ function ReportsApp() {
     <Box sx={{ p: 3 }}>
       {/* Header con información del usuario */}
       {/* <GoogleAuth user={user} /> */}
-      
+
       <Typography variant="h4" component="h1" gutterBottom>
         Reportes de Pánico
       </Typography>
@@ -386,7 +438,6 @@ function ReportsApp() {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>ID</TableCell>
                   <TableCell>Fecha</TableCell>
                   <TableCell>Estudiante</TableCell>
                   <TableCell>Facultad</TableCell>
@@ -398,11 +449,6 @@ function ReportsApp() {
               <TableBody>
                 {currentReports.map((report) => (
                   <TableRow key={report.id} hover>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                        {report.id.substring(0, 8)}...
-                      </Typography>
-                    </TableCell>
                     <TableCell>
                       <Typography variant="body2">
                         {formatDate(report.createdAt)}
@@ -642,17 +688,45 @@ function ReportsApp() {
                     </Typography>
                   )}
                 </Box>
-              </Box>
 
+                <Box>
+                  <Typography variant="subtitle1" gutterBottom gutterTop>
+                    Descripción de lo sucedido
+                  </Typography>
+                  <TextField
+                    name="description"
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={editedFields.description}
+                    onChange={(e) => handleFieldChange('description', e.target.value)}
+                    disabled={selectedReport.status !== 'pending' || selectedReport.status !== 'in_progress'}
+                  />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Acciones realizadas
+                  </Typography>
+                  <TextField
+                    name="actions"
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={editedFields.actions}
+                    onChange={(e) => handleFieldChange('actions', e.target.value)}
+                    disabled={selectedReport.status !== 'pending' || selectedReport.status !== 'in_progress'}
+                  />
+                </Box>
+              </Box>
             </>
           )}
         </DialogContent>
 
-        <DialogActions>
+        <DialogActions sx={{ justifyContent: 'center' }}>
           {selectedReport && (
             <>
               {selectedReport.status === 'pending' && (
-                <Stack direction="row" spacing={1}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent={{ xs: 'center', sm: 'flex-end' }} spacing={1}>
                   <Button
                     variant="contained"
                     color="info"
@@ -680,7 +754,7 @@ function ReportsApp() {
                 </Stack>
               )}
               {selectedReport.status === 'in_progress' && (
-                <Stack direction="row" spacing={1}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent={{ xs: 'center', sm: 'flex-end' }} spacing={1}>
                   <Button
                     variant="contained"
                     color="success"
@@ -701,14 +775,14 @@ function ReportsApp() {
               )}
               {selectedReport.status === 'resolved' && (
                 <Stack sx={{ width: '100%' }} direction="row" alignItems="center" justifyContent="center" spacing={1}>
-                  <Typography variant="body2" align="center" color="success.main">
+                  <Typography variant="h4" align="center" color="success.main">
                     Este reporte ya ha sido resuelto
                   </Typography>
                 </Stack>
               )}
               {selectedReport.status === 'cancelled' && (
                 <Stack sx={{ width: '100%' }} direction="row" alignItems="center" justifyContent="center" spacing={1}>
-                  <Typography variant="body2" align="center" color="error.main">
+                  <Typography variant="h4" align="center" color="error.main">
                     Este reporte ha sido cancelado
                   </Typography>
                 </Stack>
@@ -724,9 +798,9 @@ function ReportsApp() {
 // Componente principal con AuthProvider
 function App() {
   return (
-    <AuthProvider>
-      <ReportsApp />
-    </AuthProvider>
+    // <AuthProvider>
+    <ReportsApp />
+    // </AuthProvider>
   );
 }
 
