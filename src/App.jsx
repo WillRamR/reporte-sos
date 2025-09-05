@@ -33,7 +33,8 @@ import {
   Link,
   Divider,
   Stack,
-  IconButton
+  IconButton,
+  Container
 } from '@mui/material';
 import {
   Visibility as VisibilityIcon,
@@ -272,7 +273,7 @@ function ReportsApp() {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Reportes de Pánico
+          Reporte SOS
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
           <CircularProgress />
@@ -284,9 +285,9 @@ function ReportsApp() {
 
   if (error) {
     return (
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: 5 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Reportes de Pánico
+          Reporte SOS
         </Typography>
         <Alert severity="error">{error}</Alert>
       </Box>
@@ -299,499 +300,501 @@ function ReportsApp() {
   // }
 
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Header con información del usuario */}
-      {/* <GoogleAuth user={user} /> */}
+    <Container>
+      <Box>
+        {/* Header con información del usuario */}
+        {/* <GoogleAuth user={user} /> */}
 
-      <Typography variant="h4" component="h1" gutterBottom>
-        Reportes de Pánico
-      </Typography>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ p: 5 }}>
+          Reporte SOS
+        </Typography>
 
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" color="primary">
-                {reports.length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total Reportes
-              </Typography>
-            </CardContent>
-          </Card>
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <Typography variant="h4" color="primary">
+                  {reports.length}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total Reportes
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <Typography variant="h4" color="info.main">
+                  {filteredReports.length}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Reportes Filtrados
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <Typography variant="h4" color="warning.main">
+                  {reports.filter(r => r.status === 'pending').length}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Pendientes
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <Typography variant="h4" color="success.main">
+                  {reports.filter(r => r.status === 'resolved').length}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Resueltos
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" color="info.main">
-                {filteredReports.length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Reportes Filtrados
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" color="warning.main">
-                {reports.filter(r => r.status === 'pending').length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Pendientes
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" color="success.main">
-                {reports.filter(r => r.status === 'resolved').length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Resueltos
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
 
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-          <FilterIcon />
-          <Typography variant="h6">Filtros</Typography>
-        </Stack>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Estatus</InputLabel>
-              <Select
-                value={statusFilter}
-                label="Estatus"
-                onChange={(e) => setStatusFilter(e.target.value)}
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+            <FilterIcon />
+            <Typography variant="h6">Filtros</Typography>
+          </Stack>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Estatus</InputLabel>
+                <Select
+                  value={statusFilter}
+                  label="Estatus"
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <MenuItem value="">Todos los estatus</MenuItem>
+                  <MenuItem value="pending">Pendiente</MenuItem>
+                  <MenuItem value="in_progress">En Proceso</MenuItem>
+                  <MenuItem value="resolved">Resuelto</MenuItem>
+                  <MenuItem value="cancelled">Cancelado</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+              <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+                <DatePicker
+                  label="Fecha inicio"
+                  value={startDate ? dayjs(startDate) : null}
+                  onChange={(newValue) => setStartDate(newValue ? newValue.format('YYYY-MM-DD') : '')}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "small"
+                    }
+                  }}
+                />
+              </LocalizationProvider>
+            </Grid>
+
+            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+              <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+                <DatePicker
+                  label="Fecha fin"
+                  value={endDate ? dayjs(endDate) : null}
+                  onChange={(newValue) => setEndDate(newValue ? newValue.format('YYYY-MM-DD') : '')}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "small"
+                    }
+                  }}
+                />
+              </LocalizationProvider>
+            </Grid>
+
+            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<ClearIcon />}
+                onClick={clearFilters}
               >
-                <MenuItem value="">Todos los estatus</MenuItem>
-                <MenuItem value="pending">Pendiente</MenuItem>
-                <MenuItem value="in_progress">En Proceso</MenuItem>
-                <MenuItem value="resolved">Resuelto</MenuItem>
-                <MenuItem value="cancelled">Cancelado</MenuItem>
-              </Select>
-            </FormControl>
+                Limpiar Filtros
+              </Button>
+            </Grid>
           </Grid>
-
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-              <DatePicker
-                label="Fecha inicio"
-                value={startDate ? dayjs(startDate) : null}
-                onChange={(newValue) => setStartDate(newValue ? newValue.format('YYYY-MM-DD') : '')}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    size: "small"
-                  }
-                }}
-              />
-            </LocalizationProvider>
-          </Grid>
-
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-              <DatePicker
-                label="Fecha fin"
-                value={endDate ? dayjs(endDate) : null}
-                onChange={(newValue) => setEndDate(newValue ? newValue.format('YYYY-MM-DD') : '')}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    size: "small"
-                  }
-                }}
-              />
-            </LocalizationProvider>
-          </Grid>
-
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<ClearIcon />}
-              onClick={clearFilters}
-            >
-              Limpiar Filtros
-            </Button>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {filteredReports.length === 0 ? (
-        <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            {reports.length === 0 ? 'No hay reportes disponibles' : 'No hay reportes que coincidan con los filtros aplicados'}
-          </Typography>
         </Paper>
-      ) : (
-        <Paper>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Fecha</TableCell>
-                  <TableCell>Estudiante</TableCell>
-                  <TableCell>Facultad</TableCell>
-                  <TableCell>Estatus</TableCell>
-                  <TableCell>Ubicación</TableCell>
-                  <TableCell>Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {currentReports.map((report) => (
-                  <TableRow key={report.id} hover>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {formatDate(report.createdAt)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box>
-                        <Typography variant="body2" fontWeight="bold">
-                          {report.fullname || 'N/A'}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {report.enrollmentNumber || 'N/A'}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {report.campus || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={getStatusText(report.status)}
-                        color={
-                          report.status === 'pending' ? 'warning' :
-                            report.status === 'in_progress' ? 'info' :
-                              report.status === 'resolved' ? 'success' :
-                                'default'
-                        }
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {report.latitude && report.longitude ? (
-                        <Link
-                          href={`https://maps.google.com/?q=${report.latitude},${report.longitude}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-                        >
-                          <LocationIcon fontSize="small" />
-                          Ver mapa
-                        </Link>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          N/A
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<VisibilityIcon />}
-                        onClick={() => openReportDetails(report)}
-                      >
-                        Ver detalles
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: 1, borderColor: 'divider' }}>
-            <Typography variant="body2" color="text.secondary">
-              {currentReports.length} elemento(s) - Página {currentPage} de {totalPages}
+
+        {filteredReports.length === 0 ? (
+          <Paper sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="body1" color="text.secondary">
+              {reports.length === 0 ? 'No hay reportes disponibles' : 'No hay reportes que coincidan con los filtros aplicados'}
             </Typography>
+          </Paper>
+        ) : (
+          <Paper>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Fecha</TableCell>
+                    <TableCell>Estudiante</TableCell>
+                    <TableCell>Facultad</TableCell>
+                    <TableCell>Estatus</TableCell>
+                    <TableCell>Ubicación</TableCell>
+                    <TableCell>Acciones</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {currentReports.map((report) => (
+                    <TableRow key={report.id} hover>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {formatDate(report.createdAt)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="body2" fontWeight="bold">
+                            {report.fullname || 'N/A'}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {report.enrollmentNumber || 'N/A'}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {report.campus || 'N/A'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={getStatusText(report.status)}
+                          color={
+                            report.status === 'pending' ? 'warning' :
+                              report.status === 'in_progress' ? 'info' :
+                                report.status === 'resolved' ? 'success' :
+                                  'default'
+                          }
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {report.latitude && report.longitude ? (
+                          <Link
+                            href={`https://maps.google.com/?q=${report.latitude},${report.longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                          >
+                            <LocationIcon fontSize="small" />
+                            Ver mapa
+                          </Link>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            N/A
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<VisibilityIcon />}
+                          onClick={() => openReportDetails(report)}
+                        >
+                          Ver detalles
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: 1, borderColor: 'divider' }}>
+              <Typography variant="body2" color="text.secondary">
+                {currentReports.length} elemento(s) - Página {currentPage} de {totalPages}
+              </Typography>
 
-            {totalPages > 1 && (
-              <Pagination
-                count={totalPages}
-                page={currentPage}
-                onChange={(event, page) => goToPage(page)}
-                color="primary"
-                showFirstButton
-                showLastButton
-              />
-            )}
-          </Box>
-        </Paper>
-      )}
+              {totalPages > 1 && (
+                <Pagination
+                  count={totalPages}
+                  page={currentPage}
+                  onChange={(event, page) => goToPage(page)}
+                  color="primary"
+                  showFirstButton
+                  showLastButton
+                />
+              )}
+            </Box>
+          </Paper>
+        )}
 
-      {/* Modal de detalles del reporte */}
-      <Dialog
-        open={!!selectedReport}
-        onClose={closeReportDetails}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">Detalles del Reporte</Typography>
-          <IconButton onClick={closeReportDetails}>
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          {selectedReport && (
-            <>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Información General</Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="body2"><strong>ID:</strong> {selectedReport.id}</Typography>
+        {/* Modal de detalles del reporte */}
+        <Dialog
+          open={!!selectedReport}
+          onClose={closeReportDetails}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">Detalles del Reporte</Typography>
+            <IconButton onClick={closeReportDetails}>
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers>
+            {selectedReport && (
+              <>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>Información General</Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2"><strong>ID:</strong> {selectedReport.id}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2"><strong>Fecha:</strong> {formatDate(selectedReport.createdAt)}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body2"><strong>Estatus:</strong></Typography>
+                        <Chip
+                          label={getStatusText(selectedReport.status)}
+                          color={
+                            selectedReport.status === 'pending' ? 'warning' :
+                              selectedReport.status === 'in_progress' ? 'info' :
+                                selectedReport.status === 'resolved' ? 'success' :
+                                  'default'
+                          }
+                          size="small"
+                        />
+                      </Box>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="body2"><strong>Fecha:</strong> {formatDate(selectedReport.createdAt)}</Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2"><strong>Estatus:</strong></Typography>
-                      <Chip
-                        label={getStatusText(selectedReport.status)}
-                        color={
-                          selectedReport.status === 'pending' ? 'warning' :
-                            selectedReport.status === 'in_progress' ? 'info' :
-                              selectedReport.status === 'resolved' ? 'success' :
-                                'default'
-                        }
-                        size="small"
-                      />
-                    </Box>
-                  </Grid>
-                </Grid>
-              </Box>
+                </Box>
 
-              <Divider sx={{ my: 2 }} />
-
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Información del Estudiante</Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="body2"><strong>Nombre:</strong> {selectedReport.fullname || 'N/A'}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="body2"><strong>Matrícula:</strong> {selectedReport.enrollmentNumber || 'N/A'}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="body2"><strong>Carrera:</strong> {selectedReport.programName || 'N/A'}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="body2"><strong>Facultad:</strong> {selectedReport.campus || 'N/A'}</Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="body2"><strong>Correo:</strong> {selectedReport.email || 'N/A'}</Typography>
-                  </Grid>
-                </Grid>
-              </Box>
-
-
-              <Divider sx={{ my: 2 }} />
-
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Ubicación</Typography>
-                {selectedReport.latitude && selectedReport.longitude ? (
-                  <Box>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Coordenadas:</strong> {selectedReport.latitude}, {selectedReport.longitude}
-                    </Typography>
-                    <Link
-                      href={`https://maps.google.com/?q=${selectedReport.latitude},${selectedReport.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: 'fit-content' }}
-                    >
-                      <LocationIcon fontSize="small" />
-                      Abrir en Google Maps
-                    </Link>
-                  </Box>
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    No hay información de ubicación disponible
-                  </Typography>
-                )}
-              </Box>
-
-              <Divider sx={{ my: 2 }} />
-
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Archivos Adjuntos</Typography>
+                <Divider sx={{ my: 2 }} />
 
                 <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Fotos ({selectedReport.photos?.length || 0})
-                  </Typography>
-                  {selectedReport.photos && selectedReport.photos.length > 0 ? (
-                    <Grid container spacing={2}>
-                      {selectedReport.photos.map((photoUrl, index) => (
-                        <Grid item xs={6} sm={4} md={3} key={index}>
-                          <Link href={photoUrl} target="_blank" rel="noopener noreferrer">
-                            <Box
-                              component="img"
-                              src={photoUrl}
-                              alt={`Foto ${index + 1}`}
-                              sx={{
-                                width: '100%',
-                                height: 100,
-                                objectFit: 'cover',
-                                borderRadius: 1,
-                                cursor: 'pointer',
-                                '&:hover': { opacity: 0.8 }
-                              }}
-                            />
-                          </Link>
-                        </Grid>
-                      ))}
+                  <Typography variant="h6" gutterBottom>Información del Estudiante</Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2"><strong>Nombre:</strong> {selectedReport.fullname || 'N/A'}</Typography>
                     </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2"><strong>Matrícula:</strong> {selectedReport.enrollmentNumber || 'N/A'}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2"><strong>Carrera:</strong> {selectedReport.programName || 'N/A'}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2"><strong>Facultad:</strong> {selectedReport.campus || 'N/A'}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="body2"><strong>Correo:</strong> {selectedReport.email || 'N/A'}</Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
+
+
+                <Divider sx={{ my: 2 }} />
+
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>Ubicación</Typography>
+                  {selectedReport.latitude && selectedReport.longitude ? (
+                    <Box>
+                      <Typography variant="body2" sx={{ mb: 1 }}>
+                        <strong>Coordenadas:</strong> {selectedReport.latitude}, {selectedReport.longitude}
+                      </Typography>
+                      <Link
+                        href={`https://maps.google.com/?q=${selectedReport.latitude},${selectedReport.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: 'fit-content' }}
+                      >
+                        <LocationIcon fontSize="small" />
+                        Abrir en Google Maps
+                      </Link>
+                    </Box>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
-                      No hay fotos disponibles
+                      No hay información de ubicación disponible
                     </Typography>
                   )}
                 </Box>
 
-                <Box>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Audios ({selectedReport.audios?.length || 0})
-                  </Typography>
-                  {selectedReport.audios && selectedReport.audios.length > 0 ? (
-                    <Stack spacing={2}>
-                      {selectedReport.audios.map((audioUrl, index) => (
-                        <Box key={index} sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
-                          <Box component="audio" controls sx={{ width: '100%', mb: 1 }}>
-                            <source src={audioUrl} type="audio/mpeg" />
-                            <source src={audioUrl} type="audio/mp4" />
-                            Tu navegador no soporta el elemento de audio.
+                <Divider sx={{ my: 2 }} />
+
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>Archivos Adjuntos</Typography>
+
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Fotos ({selectedReport.photos?.length || 0})
+                    </Typography>
+                    {selectedReport.photos && selectedReport.photos.length > 0 ? (
+                      <Grid container spacing={2}>
+                        {selectedReport.photos.map((photoUrl, index) => (
+                          <Grid item xs={6} sm={4} md={3} key={index}>
+                            <Link href={photoUrl} target="_blank" rel="noopener noreferrer">
+                              <Box
+                                component="img"
+                                src={photoUrl}
+                                alt={`Foto ${index + 1}`}
+                                sx={{
+                                  width: '100%',
+                                  height: 100,
+                                  objectFit: 'cover',
+                                  borderRadius: 1,
+                                  cursor: 'pointer',
+                                  '&:hover': { opacity: 0.8 }
+                                }}
+                              />
+                            </Link>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No hay fotos disponibles
+                      </Typography>
+                    )}
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Audios ({selectedReport.audios?.length || 0})
+                    </Typography>
+                    {selectedReport.audios && selectedReport.audios.length > 0 ? (
+                      <Stack spacing={2}>
+                        {selectedReport.audios.map((audioUrl, index) => (
+                          <Box key={index} sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+                            <Box component="audio" controls sx={{ width: '100%', mb: 1 }}>
+                              <source src={audioUrl} type="audio/mpeg" />
+                              <source src={audioUrl} type="audio/mp4" />
+                              Tu navegador no soporta el elemento de audio.
+                            </Box>
+                            <Link href={audioUrl} target="_blank" rel="noopener noreferrer">
+                              Descargar Audio {index + 1}
+                            </Link>
                           </Box>
-                          <Link href={audioUrl} target="_blank" rel="noopener noreferrer">
-                            Descargar Audio {index + 1}
-                          </Link>
-                        </Box>
-                      ))}
-                    </Stack>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No hay audios disponibles
+                        ))}
+                      </Stack>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No hay audios disponibles
+                      </Typography>
+                    )}
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle1" gutterBottom gutterTop>
+                      Descripción de lo sucedido
                     </Typography>
-                  )}
+                    <TextField
+                      name="description"
+                      fullWidth
+                      multiline
+                      rows={4}
+                      value={editedFields.description}
+                      onChange={(e) => handleFieldChange('description', e.target.value)}
+                      disabled={selectedReport.status !== 'pending' && selectedReport.status !== 'in_progress'}
+                    />
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Acciones realizadas
+                    </Typography>
+                    <TextField
+                      name="actions"
+                      fullWidth
+                      multiline
+                      rows={4}
+                      value={editedFields.actions}
+                      onChange={(e) => handleFieldChange('actions', e.target.value)}
+                      disabled={selectedReport.status !== 'pending' && selectedReport.status !== 'in_progress'}
+                    />
+                  </Box>
                 </Box>
+              </>
+            )}
+          </DialogContent>
 
-                <Box>
-                  <Typography variant="subtitle1" gutterBottom gutterTop>
-                    Descripción de lo sucedido
-                  </Typography>
-                  <TextField
-                    name="description"
-                    fullWidth
-                    multiline
-                    rows={4}
-                    value={editedFields.description}
-                    onChange={(e) => handleFieldChange('description', e.target.value)}
-                    disabled={selectedReport.status !== 'pending' || selectedReport.status !== 'in_progress'}
-                  />
-                </Box>
-                <Box>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Acciones realizadas
-                  </Typography>
-                  <TextField
-                    name="actions"
-                    fullWidth
-                    multiline
-                    rows={4}
-                    value={editedFields.actions}
-                    onChange={(e) => handleFieldChange('actions', e.target.value)}
-                    disabled={selectedReport.status !== 'pending' || selectedReport.status !== 'in_progress'}
-                  />
-                </Box>
-              </Box>
-            </>
-          )}
-        </DialogContent>
-
-        <DialogActions sx={{ justifyContent: 'center' }}>
-          {selectedReport && (
-            <>
-              {selectedReport.status === 'pending' && (
-                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent={{ xs: 'center', sm: 'flex-end' }} spacing={1}>
-                  <Button
-                    variant="contained"
-                    color="info"
-                    onClick={() => handleStatusChange(selectedReport.id, 'in_progress')}
-                    disabled={updating}
-                  >
-                    {updating ? 'Actualizando...' : 'Marcar En Proceso'}
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={() => handleStatusChange(selectedReport.id, 'resolved')}
-                    disabled={updating}
-                  >
-                    {updating ? 'Actualizando...' : 'Marcar Resuelto'}
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={() => handleStatusChange(selectedReport.id, 'cancelled')}
-                    disabled={updating}
-                  >
-                    {updating ? 'Actualizando...' : 'Cancelar Reporte'}
-                  </Button>
-                </Stack>
-              )}
-              {selectedReport.status === 'in_progress' && (
-                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent={{ xs: 'center', sm: 'flex-end' }} spacing={1}>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={() => handleStatusChange(selectedReport.id, 'resolved')}
-                    disabled={updating}
-                  >
-                    {updating ? 'Actualizando...' : 'Marcar Resuelto'}
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={() => handleStatusChange(selectedReport.id, 'cancelled')}
-                    disabled={updating}
-                  >
-                    {updating ? 'Actualizando...' : 'Cancelar Reporte'}
-                  </Button>
-                </Stack>
-              )}
-              {selectedReport.status === 'resolved' && (
-                <Stack sx={{ width: '100%' }} direction="row" alignItems="center" justifyContent="center" spacing={1}>
-                  <Typography variant="h4" align="center" color="success.main">
-                    Este reporte ya ha sido resuelto
-                  </Typography>
-                </Stack>
-              )}
-              {selectedReport.status === 'cancelled' && (
-                <Stack sx={{ width: '100%' }} direction="row" alignItems="center" justifyContent="center" spacing={1}>
-                  <Typography variant="h4" align="center" color="error.main">
-                    Este reporte ha sido cancelado
-                  </Typography>
-                </Stack>
-              )}
-            </>
-          )}
-        </DialogActions>
-      </Dialog>
-    </Box>
+          <DialogActions sx={{ justifyContent: 'center' }}>
+            {selectedReport && (
+              <>
+                {selectedReport.status === 'pending' && (
+                  <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent={{ xs: 'center', sm: 'flex-end' }} spacing={1}>
+                    <Button
+                      variant="contained"
+                      color="info"
+                      onClick={() => handleStatusChange(selectedReport.id, 'in_progress')}
+                      disabled={updating}
+                    >
+                      {updating ? 'Actualizando...' : 'Marcar En Proceso'}
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={() => handleStatusChange(selectedReport.id, 'resolved')}
+                      disabled={updating}
+                    >
+                      {updating ? 'Actualizando...' : 'Marcar Resuelto'}
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      onClick={() => handleStatusChange(selectedReport.id, 'cancelled')}
+                      disabled={updating}
+                    >
+                      {updating ? 'Actualizando...' : 'Cancelar Reporte'}
+                    </Button>
+                  </Stack>
+                )}
+                {selectedReport.status === 'in_progress' && (
+                  <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent={{ xs: 'center', sm: 'flex-end' }} spacing={1}>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={() => handleStatusChange(selectedReport.id, 'resolved')}
+                      disabled={updating}
+                    >
+                      {updating ? 'Actualizando...' : 'Marcar Resuelto'}
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      onClick={() => handleStatusChange(selectedReport.id, 'cancelled')}
+                      disabled={updating}
+                    >
+                      {updating ? 'Actualizando...' : 'Cancelar Reporte'}
+                    </Button>
+                  </Stack>
+                )}
+                {selectedReport.status === 'resolved' && (
+                  <Stack sx={{ width: '100%' }} direction="row" alignItems="center" justifyContent="center" spacing={1}>
+                    <Typography variant="h4" align="center" color="success.main">
+                      Este reporte ya ha sido resuelto
+                    </Typography>
+                  </Stack>
+                )}
+                {selectedReport.status === 'cancelled' && (
+                  <Stack sx={{ width: '100%' }} direction="row" alignItems="center" justifyContent="center" spacing={1}>
+                    <Typography variant="h4" align="center" color="error.main">
+                      Este reporte ha sido cancelado
+                    </Typography>
+                  </Stack>
+                )}
+              </>
+            )}
+          </DialogActions>
+        </Dialog>
+      </Box>
+    </Container>
   );
 }
 
