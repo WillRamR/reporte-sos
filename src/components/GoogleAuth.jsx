@@ -1,30 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import googleAuth from '../services/googleAuth';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Box,
   Button,
   Paper,
   Typography,
-  Alert,
   CircularProgress,
   Avatar,
   Stack
 } from '@mui/material';
 import { Google as GoogleIcon, Logout as LogoutIcon } from '@mui/icons-material';
 
-const GoogleAuth = ({ user, onAuthStateChange }) => {
+const GoogleAuth = () => {
+  const { user, accessDenied, clearAccessDenied } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    console.log('GoogleAuth montado');
+  }, []);
 
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
       setError('');
-      
-      const user = await googleAuth.signInWithPopup();
-      console.log('Usuario autenticado:', user);
-      onAuthStateChange?.(user);
-      
+      clearAccessDenied();
+      googleAuth.clearAccessDeniedData();
+
+      const user = await googleAuth.oauth2callback();
+
     } catch (error) {
       console.error('Error en autenticación:', error);
       setError('Error al iniciar sesión con Google: ' + error.message);
@@ -37,7 +42,6 @@ const GoogleAuth = ({ user, onAuthStateChange }) => {
     try {
       setLoading(true);
       await googleAuth.signOut();
-      onAuthStateChange?.(null);
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
       setError('Error al cerrar sesión: ' + error.message);
@@ -45,6 +49,42 @@ const GoogleAuth = ({ user, onAuthStateChange }) => {
       setLoading(false);
     }
   };
+
+  // Si hay acceso denegado, mostrar el componente AccessDenied
+  if (accessDenied) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundImage: 'url(/background-photo.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <Paper sx={{ p: 4, maxWidth: 600, width: '100%', textAlign: 'left' }}>
+          <Typography variant="h5"> Reportes de SOS </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            Parece que hubo un errror, no tienes acceso a esta aplicacion.
+          </Typography>
+          <Button
+            style={{ width: '100%' }}
+            variant="contained"
+            color="primary"
+            startIcon={<GoogleIcon />}
+            onClick={signInWithGoogle}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={20} /> : 'Acceder'}
+          </Button>
+        </Paper>
+      </Box>
+    );
+  }
 
   // Si el usuario está autenticado, mostrar información del usuario
   if (user) {
@@ -62,7 +102,7 @@ const GoogleAuth = ({ user, onAuthStateChange }) => {
               </Typography>
             </Box>
           </Stack>
-          
+
           <Button
             variant="outlined"
             startIcon={<LogoutIcon />}
@@ -84,39 +124,28 @@ const GoogleAuth = ({ user, onAuthStateChange }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        bgcolor: 'grey.50'
+        backgroundImage: 'url(/background-photo.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
       }}
     >
-      <Paper sx={{ p: 4, maxWidth: 400, width: '100%', textAlign: 'center' }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Reportes de Pánico
-        </Typography>
-        
+      <Paper sx={{ p: 4, maxWidth: 600, width: '100%', textAlign: 'left' }}>
+        <Typography variant="h5"> Reportes de SOS </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Inicia sesión con tu cuenta de Google para acceder al sistema
+          Accede con tu correo electrónico (@unicach.mx)
         </Typography>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-
         <Button
+          style={{ width: '100%' }}
           variant="contained"
-          size="large"
-          fullWidth
-          startIcon={loading ? <CircularProgress size={20} /> : <GoogleIcon />}
+          color="primary"
+          startIcon={<GoogleIcon />}
           onClick={signInWithGoogle}
           disabled={loading}
-          sx={{ py: 1.5 }}
         >
-          {loading ? 'Iniciando sesión...' : 'Iniciar sesión con Google'}
+          {loading ? <CircularProgress size={20} /> : 'Acceder'}
         </Button>
-
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-          Solo usuarios autorizados pueden acceder al sistema
-        </Typography>
       </Paper>
     </Box>
   );

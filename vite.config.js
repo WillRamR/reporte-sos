@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { resolve } from 'path'
 
 export default defineConfig({
   base: './', // Rutas relativas para cualquier dominio
@@ -36,6 +37,14 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        oauth2callback: resolve(__dirname, 'oauth2callback.html')
+      }
+    }
+  },
   server: {
     host: true,
     port: 3000,

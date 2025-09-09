@@ -1,8 +1,8 @@
 // Configuración de Google OAuth - Equivalente a setAuthConfig en PHP
 const CLIENT_CONFIG = {
-    client_id: "",
-    client_secret: "",
-    project_id: "",
+    client_id: " ",
+    client_secret: " ",
+    project_id: " ",
     auth_uri: "https://accounts.google.com/o/oauth2/auth",
     token_uri: "https://oauth2.googleapis.com/token",
     redirect_uris: [],
@@ -61,7 +61,7 @@ class GoogleAuthService {
                 const user = await response.json();
 
                 // Verificar dominio unicach.mx
-                if (user.hd === 'unicach.mx') {
+                if (user.hd && user.hd === 'unicach.mx') {
                     // Datos de Google
                     const emailGoogle = user.email;
                     const imagenGoogle = user.picture;
@@ -70,39 +70,52 @@ class GoogleAuthService {
                     const nombresGoogle = user.given_name;
                     const apellidosGoogle = user.family_name;
 
-                    // Crear datos de sesión solo con datos de Google
-                    const datosSession = {
-                        emailG: emailGoogle,
-                        nombreCortoG: nombresGoogle,
-                        logueado: 1,
-                        googleAccessToken: accessToken,
-                        // Datos adicionales para la UI
-                        id: user.sub,
-                        name: nombreCompletoGoogle,
-                        picture: imagenGoogle,
-                        email: emailGoogle,
-                        given_name: nombresGoogle,
-                        family_name: apellidosGoogle,
-                        hd: dominioGoogle
-                    };
+                    const dataUser = await this.getUsuario(emailGoogle);
 
-                    this.sessionData = datosSession;
-                    this.user = datosSession;
+                    if (dataUser && dataUser.registro && typeof dataUser.registro === 'object') {
+                        // Crear datos de sesión combinando datos de Google y de la API
+                        const datosSession = {
+                            emailG: emailGoogle,
+                            nombreCortoG: nombresGoogle,
+                            logueado: 1,
+                            googleAccessToken: accessToken,
+                            id: user.sub,
+                            name: nombreCompletoGoogle,
+                            picture: imagenGoogle,
+                            email: emailGoogle,
+                            given_name: nombresGoogle,
+                            family_name: apellidosGoogle,
+                            hd: dominioGoogle,
+                            // Datos adicionales de la API SIIA
+                            matricula: dataUser.registro.MATRICULA,
+                            paterno: dataUser.registro.PATERNO,
+                            materno: dataUser.registro.MATERNO,
+                            nombres: dataUser.registro.NOMBRES,
+                            tipo: dataUser.registro.TIPO,
+                            descTipo: dataUser.registro.DESCTIPO,
+                            sexo: dataUser.registro.SEXO
+                        };
 
-                    // Guardar en localStorage
-                    localStorage.setItem('sessionData', JSON.stringify(datosSession));
-                    localStorage.setItem('google_user', JSON.stringify(datosSession));
+                        this.sessionData = datosSession;
+                        this.user = datosSession;
 
-                    this.notifyListeners(this.user);
+                        localStorage.setItem('sessionData', JSON.stringify(datosSession));
+                        localStorage.setItem('google_user', JSON.stringify(datosSession));
 
-                    // Usuario autenticado correctamente
-                    console.log('Usuario autenticado correctamente:', emailGoogle);
+                        this.notifyListeners(this.user);
+
+                        // Limpiar parámetros de URL después de autenticación exitosa
+                        this.cleanUrlParameters();
+                    } else {
+                        this.clearAccessDeniedData();
+                        this.showAccessDenied(user.email);
+                    }
                 } else {
+                    this.clearAccessDeniedData();
                     this.showAccessDenied(user.email);
                 }
 
             } catch (error) {
-                console.error('Error en verificación con Google:', error);
                 this.showError('Error al verificar con Google');
             }
         } else {
@@ -149,7 +162,6 @@ class GoogleAuthService {
 
         // Verificar si el token ha expirado (equivalente a isAccessTokenExpired en PHP)
         if (await this.isAccessTokenExpired()) {
-            console.log('La sincronización con Google ha expirado, es necesario ingresar nuevamente');
             this.handleTokenExpired();
             return false;
         }
@@ -222,7 +234,6 @@ class GoogleAuthService {
         }
     }
 
-    // Manejar token expirado
     handleTokenExpired() {
         this.accessToken = null;
         this.user = null;
@@ -231,7 +242,6 @@ class GoogleAuthService {
         this.notifyListeners(null);
     }
 
-    // Obtener token almacenado (equivalente a session->userdata en PHP)
     getStoredAccessToken() {
         try {
             const stored = localStorage.getItem('googleAccessToken');
@@ -242,23 +252,44 @@ class GoogleAuthService {
         }
     }
 
-    // Equivalente al método oauth2callback() de PHP
     async oauth2callback() {
+        // Verificar si hay código guardado desde oauth2callback.html
+        const storedCode = localStorage.getItem('oauth_code');
+        const callbackProcessed = localStorage.getItem('oauth_callback_processed');
+
+        if (storedCode && callbackProcessed) {
+            // Limpiar flags
+            localStorage.removeItem('oauth_code');
+            localStorage.removeItem('oauth_callback_processed');
+
+            try {
+                const token = await this.authenticate(storedCode);
+                if (token) {
+                    localStorage.setItem('googleAccessToken', JSON.stringify(token));
+                    await this.index();
+                } else {
+                    this.showError('Error en la autorización del cliente de Google');
+                }
+            } catch (error) {
+                console.error('Error en oauth2callback:', error);
+                this.showError('Error en la autorización del cliente de Google');
+            }
+            return;
+        }
+
+        // Si no hay código almacenado, verificar URL actual
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
 
         if (!code) {
-            // Crear URL de autorización
             const authUrl = this.createAuthUrl();
             window.location.href = authUrl;
         } else {
             try {
-                // Autenticar con el código
                 const token = await this.authenticate(code);
 
                 if (token) {
                     localStorage.setItem('googleAccessToken', JSON.stringify(token));
-                    // Redirigir a autenticación (equivalente a redirect('autenticacion'))
                     await this.index();
                 } else {
                     this.showError('Error en la autorización del cliente de Google');
@@ -270,7 +301,6 @@ class GoogleAuthService {
         }
     }
 
-    // Crear URL de autorización
     createAuthUrl() {
         const params = new URLSearchParams({
             client_id: CLIENT_CONFIG.client_id,
@@ -278,13 +308,12 @@ class GoogleAuthService {
             scope: SCOPES.join(' '),
             response_type: 'code',
             access_type: 'offline',
-            prompt: 'consent'
+            prompt: 'select_account consent'
         });
 
         return `${CLIENT_CONFIG.auth_uri}?${params.toString()}`;
     }
 
-    // Autenticar con código
     async authenticate(code) {
         try {
             const response = await fetch(CLIENT_CONFIG.token_uri, {
@@ -314,31 +343,18 @@ class GoogleAuthService {
         }
     }
 
-    // Equivalente al método logout() de PHP
     async logout() {
         const accessToken = this.getStoredAccessToken();
 
         if (accessToken) {
             try {
-                // Registrar logout
-                console.log('Usuario cerrando sesión:', this.user?.email);
-
-                // Revocar token
-                await this.revokeToken(accessToken);
-
-                // Destruir sesión local
                 this.sessionData = null;
                 this.user = null;
                 this.accessToken = null;
                 localStorage.removeItem('googleAccessToken');
                 localStorage.removeItem('sessionData');
                 localStorage.removeItem('google_user');
-
                 this.notifyListeners(null);
-
-                // Redirigir a logout de Google
-                const logoutUrl = 'https://www.google.com/accounts/Logout?continue=https://appengine.google.com/_ah/logout?continue=' + window.location.origin;
-                window.location.href = logoutUrl;
 
             } catch (error) {
                 console.error('Error en logout:', error);
@@ -346,7 +362,6 @@ class GoogleAuthService {
         }
     }
 
-    // Revocar token
     async revokeToken(accessToken) {
         try {
             const response = await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken.access_token}`, {
@@ -363,10 +378,8 @@ class GoogleAuthService {
         }
     }
 
-    // Manejar respuesta de credenciales (para Google Identity Services)
     handleCredentialResponse(response) {
         try {
-            // Crear accessToken similar al formato PHP
             const accessToken = {
                 access_token: response.credential,
                 id_token: response.credential,
@@ -384,7 +397,6 @@ class GoogleAuthService {
         }
     }
 
-    // Decodificar JWT token
     parseJwt(token) {
         try {
             const base64Url = token.split('.')[1];
@@ -399,85 +411,23 @@ class GoogleAuthService {
         }
     }
 
-    // Iniciar sesión con popup
-    async signInWithPopup() {
-        try {
-            if (!window.google) {
-                // Si no está cargado Google Identity, usar OAuth flow tradicional
-                await this.oauth2callback();
-                return this.user;
-            }
-
-            return new Promise((resolve, reject) => {
-                // Configurar callback temporal
-                const originalCallback = window.google.accounts.id.callback;
-                window.google.accounts.id.callback = (response) => {
-                    this.handleCredentialResponse(response);
-                    resolve(this.user);
-                    window.google.accounts.id.callback = originalCallback;
-                };
-
-                // Mostrar el prompt de One Tap
-                window.google.accounts.id.prompt((notification) => {
-                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                        // Si One Tap no se muestra, usar el botón de sign-in
-                        this.renderSignInButton();
-                    }
-                });
-            });
-        } catch (error) {
-            console.error('Error en signInWithPopup:', error);
-            throw error;
-        }
-    }
-
-    // Renderizar botón de sign-in como fallback
-    renderSignInButton() {
-        const buttonDiv = document.createElement('div');
-        buttonDiv.id = 'google-signin-button';
-        document.body.appendChild(buttonDiv);
-
-        window.google.accounts.id.renderButton(
-            buttonDiv,
-            {
-                theme: 'outline',
-                size: 'large',
-                width: 300,
-                text: 'signin_with'
-            }
-        );
-
-        // Hacer click automáticamente
-        setTimeout(() => {
-            const button = buttonDiv.querySelector('div[role="button"]');
-            if (button) {
-                button.click();
-            }
-        }, 100);
-    }
-
-    // Cerrar sesión (alias para logout)
     async signOut() {
         await this.logout();
     }
 
-    // Obtener usuario actual
     getCurrentUser() {
         if (this.user) return this.user;
 
-        // Intentar cargar desde localStorage
         const savedUser = localStorage.getItem('google_user');
         const savedToken = localStorage.getItem('google_token');
 
         if (savedUser && savedToken) {
             try {
                 this.user = JSON.parse(savedUser);
-                // Verificar si el token sigue siendo válido
                 const tokenData = this.parseJwt(savedToken);
                 if (tokenData && tokenData.exp * 1000 > Date.now()) {
                     return this.user;
                 } else {
-                    // Token expirado
                     this.signOut();
                 }
             } catch (error) {
@@ -489,13 +439,10 @@ class GoogleAuthService {
         return null;
     }
 
-    // Agregar listener para cambios de autenticación
     onAuthStateChanged(callback) {
         this.listeners.push(callback);
-        // Llamar inmediatamente con el estado actual
         callback(this.getCurrentUser());
 
-        // Retornar función para remover el listener
         return () => {
             const index = this.listeners.indexOf(callback);
             if (index > -1) {
@@ -504,38 +451,100 @@ class GoogleAuthService {
         };
     }
 
-    // Notificar a todos los listeners
     notifyListeners(user) {
         this.listeners.forEach(callback => callback(user));
     }
 
 
-    // Mostrar error (equivalente a load->view('autenticacion/viewError'))
     showError(mensaje) {
         console.error('Error de autenticación:', mensaje);
 
-        // Crear evento personalizado para que la UI pueda manejarlo
         const errorEvent = new CustomEvent('authError', {
             detail: { mensaje }
         });
         window.dispatchEvent(errorEvent);
 
-        // También notificar a los listeners
         this.notifyListeners(null);
     }
 
-    // Mostrar acceso denegado (equivalente a load->view('autenticacion/viewAccesoDenegado'))
     showAccessDenied(correo) {
         console.warn('Acceso denegado para:', correo);
 
-        // Crear evento personalizado para que la UI pueda manejarlo
         const accessDeniedEvent = new CustomEvent('accessDenied', {
-            detail: { correo }
+            detail: {
+                correo,
+                mensaje: `Acceso denegado para ${correo}. Solo se permite el acceso a usuarios con dominio @unicach.mx`
+            }
         });
         window.dispatchEvent(accessDeniedEvent);
+    }
 
-        // También notificar a los listeners
+    clearAccessDeniedData() {
+        this.accessToken = null;
+        this.user = null;
+        this.sessionData = null;
+
+        localStorage.removeItem('googleAccessToken');
+        localStorage.removeItem('sessionData');
+        localStorage.removeItem('google_user');
+
+        this.cleanUrlParameters();
         this.notifyListeners(null);
+    }
+
+    cleanUrlParameters() {
+        // Si estamos en /oauth2callback, redirigir a la raíz
+        if (window.location.pathname === '/oauth2callback') {
+            window.history.replaceState({}, document.title, '/');
+        } else {
+            // Si estamos en otra ruta, solo limpiar parámetros
+            const url = new URL(window.location);
+            url.searchParams.delete('code');
+            url.searchParams.delete('state');
+            url.searchParams.delete('scope');
+            window.history.replaceState({}, document.title, url.pathname);
+        }
+    }
+
+    clearTokensAndRetry() {
+        this.clearAccessDeniedData();
+
+        const storedToken = this.getStoredAccessToken();
+        if (storedToken) {
+            this.revokeToken(storedToken).catch(error => {
+                console.warn('No se pudo revocar el token:', error);
+            });
+        }
+
+        setTimeout(() => {
+            this.oauth2callback();
+        }, 100);
+    }
+
+    async getUsuario(email) {
+        try {
+            const url = 'https://siia.unicach.mx/restsiia/usuarios/validasos';
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "id_usuario": "UNICACHSOS",
+                    "token": "16fd81g111337e3123dd",
+                    "correo": email
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error en getUsuario:', error);
+            return { registro: false, length: 0 };
+        }
     }
 }
 

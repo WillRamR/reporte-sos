@@ -14,6 +14,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(null);
 
   useEffect(() => {
     const unsubscribe = googleAuth.onAuthStateChanged((user) => {
@@ -21,13 +22,32 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Escuchar eventos de acceso denegado
+    const handleAccessDenied = (event) => {
+      setAccessDenied({
+        correo: event.detail.correo,
+        mensaje: event.detail.mensaje
+      });
+    };
+
+    window.addEventListener('accessDenied', handleAccessDenied);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('accessDenied', handleAccessDenied);
+    };
   }, []);
+
+  const clearAccessDenied = () => {
+    setAccessDenied(null);
+  };
 
   const value = {
     user,
     loading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    accessDenied,
+    clearAccessDenied
   };
 
   return (

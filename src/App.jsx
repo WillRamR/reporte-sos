@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { db } from './firebase/config';
 import { collection, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
-//import { AuthProvider, useAuth } from './contexts/AuthContext';
-//import GoogleAuth from './components/GoogleAuth';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import GoogleAuth from './components/GoogleAuth';
 import {
   Box,
   Paper,
@@ -56,7 +56,7 @@ dayjs.locale('es');
 
 // Componente principal protegido
 function ReportsApp() {
-  //const { user } = useAuth();
+  const { user, accessDenied } = useAuth();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -269,6 +269,11 @@ function ReportsApp() {
     handleFilterChange();
   }, [statusFilter, startDate, endDate]);
 
+  // Si no está autenticado, mostrar componente de login
+  if (!user || accessDenied) {
+    return <GoogleAuth />;
+  }
+
   if (loading) {
     return (
       <Box sx={{ p: 3 }}>
@@ -294,23 +299,18 @@ function ReportsApp() {
     );
   }
 
-  // Si no está autenticado, mostrar componente de login
-  // if (!user) {
-  //   return <GoogleAuth />;
-  // }
-
   return (
     <Container>
       <Box>
         {/* Header con información del usuario */}
-        {/* <GoogleAuth user={user} /> */}
+        <GoogleAuth />
 
         <Typography variant="h4" component="h1" gutterBottom sx={{ p: 5 }}>
           Reporte SOS
         </Typography>
 
         <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 6, sm: 6, md: 3 }}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="primary">
@@ -322,7 +322,7 @@ function ReportsApp() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 6, sm: 6, md: 3 }}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="info.main">
@@ -334,7 +334,7 @@ function ReportsApp() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 6, sm: 6, md: 3 }}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="warning.main">
@@ -346,7 +346,7 @@ function ReportsApp() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 6, sm: 6, md: 3 }}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant="h4" color="success.main">
@@ -801,9 +801,9 @@ function ReportsApp() {
 // Componente principal con AuthProvider
 function App() {
   return (
-    // <AuthProvider>
-    <ReportsApp />
-    // </AuthProvider>
+    <AuthProvider>
+      <ReportsApp />
+    </AuthProvider>
   );
 }
 
